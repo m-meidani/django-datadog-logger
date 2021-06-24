@@ -68,11 +68,11 @@ class DataDogJSONFormatter(json_log_formatter.JSONFormatter):
 
         celery_request = self.get_celery_request(record)
         if celery_request is not None:
-            log_entry_dict["celery.request_id"] = celery_request.id
-            if isinstance(celery_request.task, str):
-                log_entry_dict["celery.task_name"] = celery_request.task
-            elif hasattr(celery_request.task, "name"):
-                log_entry_dict["celery.task_name"] = celery_request.task.name
+            log_entry_dict["celery.request_id"] = celery_request.get('id')
+            if isinstance(celery_request.get('task'), str):
+                log_entry_dict["celery.task_name"] = celery_request.get('task')
+            elif hasattr(celery_request, "name"):
+                log_entry_dict["celery.task_name"] = celery_request.get('name')
 
         wsgi_request = self.get_wsgi_request()
         if wsgi_request is not None:
@@ -149,8 +149,8 @@ class DataDogJSONFormatter(json_log_formatter.JSONFormatter):
         return log_entry_dict
 
     def get_celery_request(self, record):
-        if record.name == "celery.worker.strategy" and record.args and isinstance(record.args[0], Request):
-            return record.args[0]
+        if record.name == "celery.worker.strategy" and record.args and isinstance(record.args, dict):
+            return record.args
         return django_datadog_logger.celery.get_celery_request()
 
     def get_wsgi_request(self):
